@@ -292,6 +292,148 @@ int main() {
         delete buf;
     }
     cout << endl;
+
+    cout << "Dosan data...?" << endl;
+    int dosanCnt = str[index];
+    index++;
+
+    for (int i = 0; i < dosanCnt; i++) {
+        cout << i << " -> ";
+        cout << "s_rail : [";
+        char* buf = new char[6];
+        memcpy(buf, &str[index], 6);
+        for (int j = 0; j < 3; j++) {
+            short* num = (short *)&buf[j*2];
+            cout << *num << ", ";
+            index += 2;
+        }
+        cout << "], " << endl;
+        delete buf;
+
+        cout << "    e_rail : [";
+        buf = new char[6];
+        memcpy(buf, &str[index], 6);
+        for (int j = 0; j < 3; j++) {
+            short* num = (short *)&buf[j*2];
+            cout << *num << ", ";
+            index += 2;
+        }
+        cout << "], " << endl;
+        delete buf;
+        
+        cout << "    offset : ";
+        buf = new char[2];
+        memcpy(buf, &str[index], 2);
+        short* num = (short *)buf;
+        cout << *num << endl;
+        delete buf;
+        index += 2;
+
+        cout << "    ";
+        buf = new char[20];
+        memcpy(buf, &str[index], 20);
+        for (int j = 0; j < 5; j++) {
+            float* f = (float *)&buf[j*4];
+            cout << *f << ", ";
+            index += 4;
+        }
+        delete buf;
+
+        buf = new char[2];
+        memcpy(buf, &str[index], 2);
+        num = (short *)buf;
+        cout << *num << endl;
+        delete buf;
+        index += 2;
+    }
+
+    cout << hex << index << dec << endl;
+    cout << "Read Map Data..." << endl;
+    buf = new char[2];
+    memcpy(buf, &str[index], 2);
+    short* mapCnt = (short *)buf;
+    index += 2;
+    for (int i = 0; i < *mapCnt; i++) {
+        cout << i << " -> ";
+        if (i == 0) {
+            char* buf = new char[26];
+            memcpy(buf, &str[index], 26);
+            index += 26;
+            int j = 0;
+            cout << "[";
+            short* num = (short *)&buf[j];
+            cout << *num << ", ";
+            j += 2;
+            cout << (int)buf[j] << " ], ";
+            j++;
+            for (int k = 0; k < 3; k++) {
+                float* f = (float *)&buf[j];
+                cout << *f << ", ";
+                j += 4;
+            }
+            cout << (int)buf[j] << ", ";
+            j++;
+            num = (short *)&buf[j];
+            cout << *num << ", ";
+            j += 2;
+            float* f = (float *)&buf[j];
+            cout << *f << ", ";
+            j += 4;
+            for (int k = 0; k < 2; k++) {
+                short* num = (short *)&buf[j];
+                cout << *num << ", ";
+                j += 2;
+            }
+            cout << endl;
+            delete buf;
+        } else {
+            int railCnt = str[index];
+            index++;
+            for (int j = 0; j < railCnt; j++) {
+                cout << "[";
+                char* buf = new char[8];
+                memcpy(buf, &str[index], 8);
+                index += 8;
+                for (int k = 0; k < 4; k++) {
+                    short* num = (short *)&buf[k*2];
+                    cout << *num << ", ";
+                }
+                cout << "], ";
+            }
+            char* buf = new char[26];
+            memcpy(buf, &str[index], 26);
+            index += 26;
+            int j = 0;
+            cout << "[";
+            short* num = (short *)&buf[j];
+            cout << *num << ", ";
+            j += 2;
+            cout << (int)buf[j] << " ], ";
+            j++;
+            for (int k = 0; k < 3; k++) {
+                float* f = (float *)&buf[j];
+                cout << *f << ", ";
+                j += 4;
+            }
+            cout << (int)buf[j] << ", ";
+            j++;
+            num = (short *)&buf[j];
+            cout << *num << ", ";
+            j += 2;
+            float* f = (float *)&buf[j];
+            cout << *f << ", ";
+            j += 4;
+            for (int k = 0; k < 2; k++) {
+                short* num = (short *)&buf[j];
+                cout << *num << ", ";
+                j += 2;
+            }
+            cout << endl;
+            delete buf;
+        }
+    }
+    delete buf;
+
     
     /*
 
