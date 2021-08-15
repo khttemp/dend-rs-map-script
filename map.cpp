@@ -2,6 +2,8 @@
 #include <fstream>
 #include <cstring>
 #include <string>
+#include <sstream>
+#include <iomanip>
 #include <Windows.h>
 #define CMD_MAX 574
 using namespace std;
@@ -349,91 +351,118 @@ int main() {
 
     cout << hex << index << dec << endl;
     cout << "Read Map Data..." << endl;
+    bool flag;
+    bool onlyDrift = true;
     buf = new char[2];
     memcpy(buf, &str[index], 2);
     short* mapCnt = (short *)buf;
     index += 2;
     for (int i = 0; i < *mapCnt; i++) {
-        cout << i << " -> ";
+        flag = false;
+        ostringstream oss;
         if (i == 0) {
             char* buf = new char[26];
             memcpy(buf, &str[index], 26);
             index += 26;
             int j = 0;
-            cout << "[";
+            oss << "[";
             short* num = (short *)&buf[j];
-            cout << *num << ", ";
+            oss << *num << ", ";
             j += 2;
-            cout << (int)buf[j] << " ], ";
+            oss << (int)buf[j] << " ], ";
             j++;
             for (int k = 0; k < 3; k++) {
                 float* f = (float *)&buf[j];
-                cout << *f << ", ";
+                oss << *f << ", ";
                 j += 4;
             }
-            cout << (int)buf[j] << ", ";
+            oss << "0x" << setfill('0') << setw(2) << hex << (int)buf[j] << dec << ", ";
             j++;
             num = (short *)&buf[j];
-            cout << *num << ", ";
+            oss << *num << ", ";
             j += 2;
             float* f = (float *)&buf[j];
-            cout << *f << ", ";
+            oss << *f << ", ";
             j += 4;
             for (int k = 0; k < 2; k++) {
                 short* num = (short *)&buf[j];
-                cout << *num << ", ";
+                oss << "0x" << setfill('0') << setw(4) << hex << *num << dec << ", ";
                 j += 2;
             }
-            cout << endl;
+            oss << endl;
+
+            if (!onlyDrift) {
+                string str = oss.str();
+                cout << str;
+            }
             delete buf;
         } else {
             int railCnt = str[index];
             index++;
             for (int j = 0; j < railCnt; j++) {
-                cout << "[";
+                oss << "[";
                 char* buf = new char[8];
                 memcpy(buf, &str[index], 8);
                 index += 8;
                 for (int k = 0; k < 4; k++) {
                     short* num = (short *)&buf[k*2];
-                    cout << *num << ", ";
+                    oss << *num << ", ";
                 }
-                cout << "], ";
+                oss << "], ";
             }
             char* buf = new char[26];
             memcpy(buf, &str[index], 26);
             index += 26;
             int j = 0;
-            cout << "[";
+            oss << "[";
             short* num = (short *)&buf[j];
-            cout << *num << ", ";
+            oss << *num << ", ";
             j += 2;
-            cout << (int)buf[j] << " ], ";
+            oss << (int)buf[j] << " ], ";
             j++;
             for (int k = 0; k < 3; k++) {
                 float* f = (float *)&buf[j];
-                cout << *f << ", ";
+                oss << *f << ", ";
                 j += 4;
             }
-            cout << (int)buf[j] << ", ";
+            oss << "0x" << hex << setfill('0') << setw(2) << (buf[j] & 0x000000FF) << dec << ", ";
             j++;
             num = (short *)&buf[j];
-            cout << *num << ", ";
+            oss << *num << ", ";
             j += 2;
             float* f = (float *)&buf[j];
-            cout << *f << ", ";
+            oss << *f << ", ";
             j += 4;
-            for (int k = 0; k < 2; k++) {
-                short* num = (short *)&buf[j];
-                cout << *num << ", ";
-                j += 2;
+            for (int k = 0; k < 4; k++) {
+                oss << "0x";
+                oss << hex << setfill('0') << setw(2) << (buf[j] & 0x000000FF) << dec << ", ";
+                if (k == 3) {
+                    if ((buf[j] & 0x01) == 0x01) {
+                        flag = true;
+                    }
+                    if ((buf[j] & 0x02) == 0x02) {
+                        flag = true;
+                    }
+                    if ((buf[j] & 0x04) == 0x04) {
+                        flag = true;
+                    }
+                }
+                j++;
             }
-            cout << endl;
+            oss << endl;
             delete buf;
+            if (!onlyDrift) {
+                string str = oss.str();
+                cout << str;
+            } else {
+                if (flag) {
+                    string str = oss.str();
+                    cout << str;
+                }
+            }
         }
     }
     delete buf;
-
     
     /*
 
