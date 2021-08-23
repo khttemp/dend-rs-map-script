@@ -5,8 +5,36 @@
 #include <sstream>
 #include <iomanip>
 #include <Windows.h>
-#define CMD_MAX 574
 using namespace std;
+
+short readShort(char* str) {
+    char* buf = new char[2];
+    memcpy(buf, str, 2);
+    short *p = (short *)buf;
+    return *p;
+}
+
+int readInt(char* str) {
+    char* buf = new char[4];
+    memcpy(buf, str, 4);
+    int *p = (int *)buf;
+    return *p;
+}
+
+float readFloat(char* str) {
+    char* buf = new char[4];
+    memcpy(buf, str, 4);
+    float *p = (float *)buf;
+    return *p;
+}
+
+string readString(char* str, int length) {
+    char* buf = new char[length];
+    memcpy(buf, str, length);
+    buf[length] = '\0';
+
+    return string(buf, length);
+}
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
@@ -34,30 +62,9 @@ int main() {
 
     fin.close();
 
-    /*
-    int slowFlag;
-    cout << "ReadComicDataを１行ずつ読みますか？(Y/N)";
-    while (true) {
-        cin >> input;
-
-        if (input == "Y" || input == "y") {
-            slowFlag = 1;
-            break;
-        } else if (input == "N" || input == "n") {
-            slowFlag = 0;
-            break;
-        } else {
-            cin.ignore();
-            cout << "入力エラー！改めて入力してください：";
-        }
-    }
-    */
-
     int index = 16;
-    char* buf = new char[index+1];
-    memcpy(buf, &str[0], index);
-    buf[index] = '\0';
-    sbuf = string(buf);
+    bool readFlag = false;
+    sbuf = readString(&str[0], index);
 
     if (sbuf != "DEND_MAP_VER0300" && sbuf != "DEND_MAP_VER0400") {
         cin.ignore();
@@ -66,60 +73,50 @@ int main() {
         getchar();
         return -1;
     }
-    delete buf;
 
-    int unknownCnt = str[index];
+    if (sbuf == "DEND_MAP_VER0400") {
+        readFlag = true;
+    }
+
+    int musicCnt = str[index];
     index++;
-    for (int i = 0; i < unknownCnt; i++) {
+    for (int i = 0; i < musicCnt; i++) {
         index++;
     }
 
-    unknownCnt = str[index];
+    int pRailCnt = str[index];
     index++;
-    for (int i = 0; i < 3; i++) {
-        if (i == 1) {
-            for (int j = 0; j < unknownCnt-1; j++) {
-                index++;
-                for (int k = 0; k < 4; k++) {
-                    index += 2;
-                }
-            }
-        } else {
-            index++;
-            for (int j = 0; j < 4; j++) {
-                index += 2;
-            }
-            index++;
-            for (int j = 0; j < 4; j++) {
-                index += 2;
-            }
+    for (int i = 0; i < pRailCnt; i++) {
+        for (int k = 0; k < 4; k++) {
+            index += 2;
         }
+        printf("\n");
+        index++;
     }
+
+    // unknown(1)
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            index += 2;
+        }
+        index++;
+    }
+    // unknown(1)
     
     index++;
-    /* 1700
-    buf = new char[4];
-    memcpy(buf, &str[index], 4);
-    float* f = (float *)buf;
-    cout << *f;
-    cout << '\n';
-    */
-
+    // 描画量? (1700)
     index += 4;
-    unknownCnt = str[index];
+    
+    //unknown(2)
+    int unknownCnt = str[index];
     index++;
     for (int i = 0; i < unknownCnt; i++) {
         for (int j = 0; j < 2; j++) {
-            /*
-            buf = new char[4];
-            memcpy(buf, &str[index], 4);
-            float* f = (float *)buf;
-            cout << *f << ", ";
-            */
             index += 4;
         }
         index += 3;
     }
+    //unknown(2)
 
     cout << "Read Light..." << endl;
     int lightCnt = str[index];
@@ -127,41 +124,29 @@ int main() {
     for (int i = 0; i < lightCnt; i++) {
         int b = str[index];
         index++;
-        char* buf = new char[b+1];
-        memcpy(buf, &str[index], b);
-        buf[b] = '\0';
-        cout << i << " -> " << buf << endl;
+        cout << i << " -> " << readString(&str[index], b) << endl;
         index += b;
-        delete buf;
     }
     cout << endl;
 
     cout << "Read png..." << endl;
-    buf = new char[2];
-    memcpy(buf, &str[index], 2);
+    short pngCnt = readShort(&str[index]);
     index += 2;
-    short* cnt = (short *)buf;
-    for (int i = 0; i < *cnt; i++) {
+    for (int i = 0; i < pngCnt; i++) {
         int b = str[index];
         index++;
-        char* buf = new char[b+1];
-        memcpy(buf, &str[index], b);
-        buf[b] = '\0';
-        cout << i << " -> " << buf << endl;
+        cout << i << " -> " << readString(&str[index], b) << endl;
         index += b;
-        delete buf;
     }
-    delete buf;
     cout << endl;
 
-    buf = new char[2];
-    memcpy(buf, &str[index], 2);
+    //unknown(3)
+    short cnt = readShort(&str[index]);
     index += 2;
-    cnt = (short *)buf;
-    for (int i = 0; i < *cnt; i++) {
+    for (int i = 0; i < cnt; i++) {
         index += 9;
     }
-    delete buf;
+    //unknown(3)
 
     cout << "Read Object Bin..." << endl;
     int binCnt = str[index];
@@ -169,43 +154,33 @@ int main() {
     for (int i = 0; i < binCnt; i++) {
         int b = str[index];
         index++;
-        char* buf = new char[b+1];
-        memcpy(buf, &str[index], b);
-        buf[b] = '\0';
-        cout << i << " -> " << buf << endl;
+        cout << i << " -> " << readString(&str[index], b) << endl;
         index += b;
-        delete buf;
     }
     cout << endl;
     index += 4;
 
     index += 2;
     cout << "Read smf..." << endl;
-    buf = new char[2];
+    char* buf = new char[2];
     memcpy(buf, &str[index], 1);
     buf[1] = 0x00;
+    delete buf;
     short* smfCnt = (short *)buf;
     index++;
     for (int i = 0; i < *smfCnt; i++) {
         int b = str[index];
         index++;
-        char* buf = new char[b+1];
-        memcpy(buf, &str[index], b);
-        buf[b] = '\0';
-        cout << i << " -> " << buf;
+        cout << i << " -> " << readString(&str[index], b);
         index += b;
-        delete buf;
 
         cout << " [";
-        buf = new char[8];
-        memcpy(buf, &str[index], 8);
         for (int j = 0; j < 4; j++) {
-            short* num = (short *)&buf[j*2];
-            cout << *num << ", ";
+            short num = readShort(&str[index]);
+            cout << num << ", ";
             index += 2;
         }
         cout << "]" << endl;
-        delete buf;
     }
     cout << endl;
 
@@ -220,13 +195,10 @@ int main() {
         index++;
         cout << i << " -> [ ";
         if (b > 0) {
-            char* buf = new char[b+1];
-            memcpy(buf, &str[index], b);
-            buf[b] = '\0';
+            string buf = readString(&str[index], b);
             index += b;
 
             cout << buf;
-            delete buf;
         }
         cout << " ] ";
         for (int j = 0; j < 3; j++) {
@@ -239,13 +211,13 @@ int main() {
 
     SetConsoleOutputCP(CP_UTF8);
 
-    //unknown parameter
+    //unknown(4)
     if (str[index] == 0x01) {
         index += 0x12;
     } else {
         index++;
     }
-    //unknown
+    //unknown(4)
 
     cout << "Read cpu data..." << endl;
     int cpuCnt = str[index];
@@ -253,25 +225,19 @@ int main() {
 
     for (int i = 0; i < cpuCnt; i++) {
         cout << i << " -> ";
-        char* buf = new char[2];
-        memcpy(buf, &str[index], 2);
         //Rail.No
-        short* railNo = (short *)buf;
-        cout << *railNo << ", ";
+        short railNo = readShort(&str[index]);
+        cout << railNo << ", ";
         index += 2;
-        delete buf;
         //CPU mode?
         cout << (int)str[index++] << ", ";
         cout << (int)str[index++] << ", ";
         //
-        buf = new char[16];
-        memcpy(buf, &str[index], 16);
         for (int j = 0; j < 4; j++) {
-            float* f = (float *)&buf[j*4];
-            cout << *f << ", ";
+            float f = readFloat(&str[index]);
+            cout << f << ", ";
+            index += 4;
         }
-        index += 16;
-        delete buf;
         cout << endl;
     }
     cout << endl;
@@ -282,16 +248,12 @@ int main() {
 
     for (int i = 0; i < comicbinCnt; i++) {
         cout << i << " -> ";
-        char* buf = new char[2];
-        memcpy(buf, &str[index], 2);
-
-        short* comicName = (short *)buf;
-        cout << *comicName << ", ";
+        short comicName = readShort(&str[index]);
+        cout << comicName << ", ";
         index += 2;
         cout << (int)str[index++] << ", ";
         cout << (int)str[index++] << ", ";
         cout << (int)str[index++] << ", " << endl;
-        delete buf;
     }
     cout << endl;
 
@@ -302,70 +264,52 @@ int main() {
     for (int i = 0; i < dosanCnt; i++) {
         cout << i << " -> ";
         cout << "s_rail : [";
-        char* buf = new char[6];
-        memcpy(buf, &str[index], 6);
         for (int j = 0; j < 3; j++) {
-            short* num = (short *)&buf[j*2];
-            cout << *num << ", ";
+            short num = readShort(&str[index]);
+            cout << num << ", ";
             index += 2;
         }
         cout << "], " << endl;
-        delete buf;
 
         cout << "    e_rail : [";
-        buf = new char[6];
-        memcpy(buf, &str[index], 6);
         for (int j = 0; j < 3; j++) {
-            short* num = (short *)&buf[j*2];
-            cout << *num << ", ";
+            short num = readShort(&str[index]);
+            cout << num << ", ";
             index += 2;
         }
         cout << "], " << endl;
-        delete buf;
         
         cout << "    offset : ";
-        buf = new char[2];
-        memcpy(buf, &str[index], 2);
-        short* num = (short *)buf;
-        cout << *num << endl;
-        delete buf;
+        short num = readShort(&str[index]);
+        cout << num << endl;
         index += 2;
 
         cout << "    ";
-        buf = new char[20];
-        memcpy(buf, &str[index], 20);
         for (int j = 0; j < 5; j++) {
-            float* f = (float *)&buf[j*4];
-            cout << *f << ", ";
+            float f = readFloat(&str[index]);
+            cout << f << ", ";
             index += 4;
         }
-        delete buf;
 
-        buf = new char[2];
-        memcpy(buf, &str[index], 2);
-        num = (short *)buf;
-        cout << *num << endl;
-        delete buf;
+        num = readShort(&str[index]);
+        cout << num << endl;
         index += 2;
     }
+    cout << endl;
 
     cout << hex << index << dec << endl;
     cout << "Read Map Data..." << endl;
     bool flag;
     bool onlyDrift = true;
-    buf = new char[2];
-    memcpy(buf, &str[index], 2);
-    short* mapCnt = (short *)buf;
+    short mapCnt = readShort(&str[index]);
     index += 2;
-    for (int i = 0; i < *mapCnt; i++) {
+    for (int i = 0; i < mapCnt; i++) {
         flag = false;
         ostringstream oss;
         oss << "[";
-        buf = new char[2];
-        memcpy(buf, &str[index], 2);
-        short* rail_no = (short *)buf;
+        short rail_no = readShort(&str[index]);
         index += 2;
-        oss << *rail_no << ", ";
+        oss << rail_no << ", ";
         char block = str[index];
         index++;
         oss << (int)block;
@@ -375,26 +319,21 @@ int main() {
         //vector
         oss << "[";
         for (int j = 0; j < 3; j++) {
-            memcpy(buf, &str[index], 4);
-            float* xyz = (float *)buf;
+            float xyz = readFloat(&str[index]);;
             index += 4;
-            oss << *xyz << ", ";
+            oss << xyz << ", ";
         }
         oss << "], ";
         oss << "[";
-        memcpy(buf, &str[index], 2);
-        short* mdl_no = (short *)buf;
-        oss << *mdl_no << ", ";
+        short mdl_no = readShort(&str[index]);
+        oss << mdl_no << ", ";
         index += 2;
         oss << (int)str[index] << "], ";
         index++;
 
-        char* buf2 = new char[4];
-        memcpy(buf2, &str[index], 4);
+        float per = readFloat(&str[index]);;
+        oss << per << ", ";
         index += 4;
-        float* per = (float *)buf2;
-        oss << *per << ", ";
-        delete buf2;
 
         int k = 0;
         char* flg = new char[4];
@@ -423,26 +362,34 @@ int main() {
         index++;
 
         for (int j = 0; j < rail_data; j++) {
+            if (readFlag) {
+                oss << "[";
+                short next_rail = readShort(&str[index]);
+                index += 2;
+                oss << next_rail << ", ";
+                short next_no = readShort(&str[index]);
+                index += 2;
+                oss << next_no << ", ";
+                short prev_rail = readShort(&str[index]);
+                index += 2;
+                oss << prev_rail << ", ";
+                short prev_no = readShort(&str[index]);
+                index += 2;
+                oss << prev_no << "], ";
+            }
             oss << "[";
-            char* buf = new char[2];
-            memcpy(buf, &str[index], 2);
+            short next_rail = readShort(&str[index]);
             index += 2;
-            short* next_rail = (short *)buf;
-            oss << *next_rail << ", ";
-            memcpy(buf, &str[index], 2);
+            oss << next_rail << ", ";
+            short next_no = readShort(&str[index]);
             index += 2;
-            short* next_no = (short *)buf;
-            oss << *next_no << ", ";
-            memcpy(buf, &str[index], 2);
+            oss << next_no << ", ";
+            short prev_rail = readShort(&str[index]);
             index += 2;
-            short* prev_rail = (short *)buf;
-            oss << *prev_rail << ", ";
-            memcpy(buf, &str[index], 2);
+            oss << prev_rail << ", ";
+            short prev_no = readShort(&str[index]);
             index += 2;
-            short* prev_no = (short *)buf;
-            oss << *prev_no << "], ";
-
-            delete buf;
+            oss << prev_no << "], ";
         }
         oss << endl;
         cout << oss.str();
@@ -459,64 +406,8 @@ int main() {
         }
         */
     }
-    delete buf;
-    
+
     /*
-
-    cout << "ReadComicData..." << endl;
-    index++;
-
-    buf = new char[2];
-    memcpy(buf, &str[index], 2);
-    short* p_num = (short *)buf;
-    short num = *p_num;
-    index += 2;
-    delete buf;
-
-    int count = 0;
-    cin.ignore();
-    for (int i = 0; i < num; i++) {
-        if (index >= size) {
-            cout << "注意！設定したコマンド数(" << num << ")は、書き込んだコマンド数(" << count << ")より多く読もうとしています" << endl;
-            getchar();
-            return 0;
-        }
-        cout << "No." << dec << i << " -> index(";
-        cout << hex << index;
-        cout << ")" << endl;
-        char* buf = new char[2];
-        memcpy(buf, &str[index], 2);
-        short *p_num2 = (short *)buf;
-        short num2 = *p_num2;
-        index += 2;
-
-        if (num2 < 0 || num2 >= CMD_MAX) {
-            cout << "定義されてないコマンド番号です(" << dec << num2 << ")。読込を終了します。" << endl;
-            getchar();
-            return 0;
-        }
-        delete buf;
-        
-        cout << "cmd -> " << cmd[num2] << "(";
-        cout << dec << num2 << ")" << endl;
-        int b = str[index];
-        index++;
-        if (b >= 16) {
-            cout << "script Error!" << endl;
-            b = 16;
-        }
-        cout << "cmd_cnt -> " << b << endl;
-        cout << "cmd_param -> [";
-        for (int j = 0; j < b; j++) {
-            float* f = (float *)&str[index];
-            cout << *f << ", ";
-            index += 4;
-        }
-        cout << "]" << endl;
-        cout << '\n';
-        count++;
-    }
-
     cout << "正常に読み込みできました。終了します。" << endl;
     if (index < size) {
         cout << "注意！設定したコマンド数(" << count << ")は、書き込んだコマンド数より少なく設定されています" << endl;
