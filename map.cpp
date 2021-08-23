@@ -360,107 +360,104 @@ int main() {
     for (int i = 0; i < *mapCnt; i++) {
         flag = false;
         ostringstream oss;
-        if (i == 0) {
-            char* buf = new char[26];
-            memcpy(buf, &str[index], 26);
-            index += 26;
-            int j = 0;
-            oss << "[";
-            short* num = (short *)&buf[j];
-            oss << *num << ", ";
-            j += 2;
-            oss << (int)buf[j] << " ], ";
-            j++;
-            for (int k = 0; k < 3; k++) {
-                float* f = (float *)&buf[j];
-                oss << *f << ", ";
-                j += 4;
-            }
-            oss << "0x" << setfill('0') << setw(2) << hex << (int)buf[j] << dec << ", ";
-            j++;
-            num = (short *)&buf[j];
-            oss << *num << ", ";
-            j += 2;
-            float* f = (float *)&buf[j];
-            oss << *f << ", ";
-            j += 4;
-            for (int k = 0; k < 2; k++) {
-                short* num = (short *)&buf[j];
-                oss << "0x" << setfill('0') << setw(4) << hex << *num << dec << ", ";
-                j += 2;
-            }
-            oss << endl;
+        oss << "[";
+        buf = new char[2];
+        memcpy(buf, &str[index], 2);
+        short* rail_no = (short *)buf;
+        index += 2;
+        oss << *rail_no << ", ";
+        char block = str[index];
+        index++;
+        oss << (int)block;
+        oss << "]";
 
-            if (!onlyDrift) {
-                string str = oss.str();
-                cout << str;
-            }
-            delete buf;
-        } else {
-            int railCnt = str[index];
-            index++;
-            for (int j = 0; j < railCnt; j++) {
-                oss << "[";
-                char* buf = new char[8];
-                memcpy(buf, &str[index], 8);
-                index += 8;
-                for (int k = 0; k < 4; k++) {
-                    short* num = (short *)&buf[k*2];
-                    oss << *num << ", ";
+        oss << ", ";
+        //vector
+        oss << "[";
+        for (int j = 0; j < 3; j++) {
+            memcpy(buf, &str[index], 4);
+            float* xyz = (float *)buf;
+            index += 4;
+            oss << *xyz << ", ";
+        }
+        oss << "], ";
+        oss << "[";
+        memcpy(buf, &str[index], 2);
+        short* mdl_no = (short *)buf;
+        oss << *mdl_no << ", ";
+        index += 2;
+        oss << (int)str[index] << "], ";
+        index++;
+
+        char* buf2 = new char[4];
+        memcpy(buf2, &str[index], 4);
+        index += 4;
+        float* per = (float *)buf2;
+        oss << *per << ", ";
+        delete buf2;
+
+        int k = 0;
+        char* flg = new char[4];
+        memcpy(flg, &str[index], 4);
+        index += 4;
+        
+        for (int j = 0; j < 4; j++) {
+            oss << "0x";
+            oss << hex << setfill('0') << setw(2) << (flg[k] & 0x000000FF) << dec << ", ";
+            if (j == 3) {
+                if ((flg[k] & 0x01) == 0x01) {
+                    flag = true;
                 }
-                oss << "], ";
+                if ((flg[k] & 0x02) == 0x02) {
+                    flag = true;
+                }
+                if ((flg[k] & 0x04) == 0x04) {
+                    flag = true;
+                }
             }
-            char* buf = new char[26];
-            memcpy(buf, &str[index], 26);
-            index += 26;
-            int j = 0;
+            k++;
+        }
+        delete flg;
+
+        int rail_data = str[index];
+        index++;
+
+        for (int j = 0; j < rail_data; j++) {
             oss << "[";
-            short* num = (short *)&buf[j];
-            oss << *num << ", ";
-            j += 2;
-            oss << (int)buf[j] << " ], ";
-            j++;
-            for (int k = 0; k < 3; k++) {
-                float* f = (float *)&buf[j];
-                oss << *f << ", ";
-                j += 4;
-            }
-            oss << "0x" << hex << setfill('0') << setw(2) << (buf[j] & 0x000000FF) << dec << ", ";
-            j++;
-            num = (short *)&buf[j];
-            oss << *num << ", ";
-            j += 2;
-            float* f = (float *)&buf[j];
-            oss << *f << ", ";
-            j += 4;
-            for (int k = 0; k < 4; k++) {
-                oss << "0x";
-                oss << hex << setfill('0') << setw(2) << (buf[j] & 0x000000FF) << dec << ", ";
-                if (k == 3) {
-                    if ((buf[j] & 0x01) == 0x01) {
-                        flag = true;
-                    }
-                    if ((buf[j] & 0x02) == 0x02) {
-                        flag = true;
-                    }
-                    if ((buf[j] & 0x04) == 0x04) {
-                        flag = true;
-                    }
-                }
-                j++;
-            }
-            oss << endl;
+            char* buf = new char[2];
+            memcpy(buf, &str[index], 2);
+            index += 2;
+            short* next_rail = (short *)buf;
+            oss << *next_rail << ", ";
+            memcpy(buf, &str[index], 2);
+            index += 2;
+            short* next_no = (short *)buf;
+            oss << *next_no << ", ";
+            memcpy(buf, &str[index], 2);
+            index += 2;
+            short* prev_rail = (short *)buf;
+            oss << *prev_rail << ", ";
+            memcpy(buf, &str[index], 2);
+            index += 2;
+            short* prev_no = (short *)buf;
+            oss << *prev_no << "], ";
+
             delete buf;
-            if (!onlyDrift) {
+        }
+        oss << endl;
+        cout << oss.str();
+        /*
+        delete buf;
+        if (!onlyDrift) {
+            string str = oss.str();
+            cout << str;
+        } else {
+            if (flag) {
                 string str = oss.str();
                 cout << str;
-            } else {
-                if (flag) {
-                    string str = oss.str();
-                    cout << str;
-                }
             }
         }
+        */
     }
     delete buf;
     
