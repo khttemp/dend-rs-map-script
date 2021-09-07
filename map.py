@@ -161,7 +161,10 @@ try:
     print()
 
     ##########unknown
-    index += 6
+    cnt = line[index]
+    index += 1
+    for i in range(cnt):
+        index += 5
     ##########unknown
     
     print("Read smf...")
@@ -181,21 +184,23 @@ try:
     print()
 
     print("Read Station Name...")
-    snameCnt = readBinary(line[index:index+2], "short")
-    index += 2
+    snameCnt = line[index]
+    index += 1
     for i in range(snameCnt-1):
-        arr = []
-        for j in range(3):
-            arr.append(line[index])
-            index += 1
-        index += 0x1A
         b = line[index]
         index += 1
         text = ""
         if b > 0:
             text = line[index:index+b].decode("shift-jis")
             index += b
-        print("{0} -> {1}, {2}".format(i, arr, text))
+        arr = []
+        for j in range(3):
+            arr.append(line[index])
+            index += 1
+        index += 0x1A
+        print("{0} -> {1}, {2}".format(i, text, arr))
+
+    index += 1
 
     ##########unknown
     cnt = line[index]
@@ -311,11 +316,11 @@ try:
             index += 4
         print("{0}, ".format(xyz), end="")
 
-        mdl_no = readBinary(line[index:index+2], "short")
-        index += 2
-
-        mdl_no_next = line[index]
+        mdl_no = line[index]
         index += 1
+
+        mdl_no_next = readBinary(line[index:index+2], "short")
+        index += 2
 
         per = readBinary(line[index:index+4], "float")
         index += 4
@@ -359,8 +364,6 @@ try:
         print()
     input()
         
-        
-    
 except Exception as e:
     print(e)
     sys.exit()
