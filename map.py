@@ -20,11 +20,12 @@ def readBinary(line, mode):
 
 print("DEND MAP SCRIPT ver1.0.0...")
 file = input("railのbinファイル名を入力してください: ")
-
+fildDir = "E:\Densha De D\RisingStage\Patch_4th_4"
 readFlag = False
 
 try:
     try:
+        file = os.path.join(fildDir, file) 
         f = open(file, "rb")
         line = f.read()
         f.close()
@@ -57,37 +58,29 @@ try:
     index += 1
     print()
 
-    print("初期位置")
     #3車両の初期レール位置
-    for i in range(3):
+    print("初期位置")
+    for i in range(trainCnt):
         railNo = readBinary(line[index:index+2], "short")
         index += 2
         boneNo = readBinary(line[index:index+2], "short")
         index += 2
 
-        ##########unknown
+        ########## rail pos unknown
         index += 4
         index += 1
-        ##########unknown
+        ########## rail pos unknown
         print("{0} -> ({1}, {2})".format(i+1, railNo, boneNo))
     print()
 
-    print("試運転位置")
-    #試運転の初期レール位置
-    railNo = readBinary(line[index:index+2], "short")
+    #ダミー位置？
     index += 2
-    boneNo = readBinary(line[index:index+2], "short")
     index += 2
-
-    ##########unknown
     index += 4
     index += 1
-    ##########unknown
-    print("({0}, {1})".format(railNo, boneNo))
-    print()
 
-    #二人バトルの初期レール位置
-    print("二人バトル位置")
+    #試運転、二人バトルの初期レール位置
+    print("試運転、二人バトル位置")
     for i in range(2):
         railNo = readBinary(line[index:index+2], "short")
         index += 2
@@ -102,7 +95,6 @@ try:
     print()
 
     index += 1
-
     ##########unknown
     print(readBinary(line[index:index+4], "float"))
     index += 4
@@ -186,35 +178,26 @@ try:
     print("Read Station Name...")
     snameCnt = line[index]
     index += 1
-    for i in range(snameCnt-1):
+    for i in range(snameCnt):
         b = line[index]
         index += 1
         text = ""
         if b > 0:
             text = line[index:index+b].decode("shift-jis")
             index += b
-        arr = []
-        for j in range(3):
-            arr.append(line[index])
-            index += 1
-        index += 0x1A
-        print("{0} -> {1}, {2}".format(i, text, arr))
 
-    index += 1
+        stFlag = line[index]
+        index += 1
+        railNo = readBinary(line[index:index+2], "short")
+        index += 2
+        index += 0x1A
+        print("{0} -> {1}, {2}, {3}".format(i, text, stFlag, railNo))
 
     ##########unknown
     cnt = line[index]
     index += 1
     for i in range(cnt):
-        index += 0x0E
-
-    cnt = line[index]
-    index += 1
-    if cnt > 0:
-        for i in range(cnt):
-            index += 16
-
-        index += 1
+        index += 0x11
     print()
     ##########unknown
     
