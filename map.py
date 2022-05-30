@@ -14,19 +14,27 @@ def readBinary(line, mode):
         return i
     elif mode == "float":
         f = struct.unpack("<f", line)[0]
+        f = round(f, 4)
         return f
+    elif mode == "char":
+        c = struct.unpack("<b", int(line).to_bytes(1, "little"))[0]
+        return c
+    elif mode == "uchar":
+        c = struct.unpack("<B", int(line).to_bytes(1, "little"))[0]
+        return c
     else:
         return None
 
 print("DEND MAP SCRIPT ver1.0.0...")
 file = input("railのbinファイル名を入力してください: ")
-fildDir = "E:\Densha De D\RisingStage\Patch_4th_4"
+fildDir = "../raildata/RS"
 readFlag = False
 
 try:
     try:
-        file = os.path.join(fildDir, file) 
-        f = open(file, "rb")
+        filepath = os.path.join(fildDir, file)
+        filename = os.path.splitext(file)[0]
+        f = open(filepath, "rb")
         line = f.read()
         f.close()
     except FileNotFoundError:
@@ -242,7 +250,7 @@ try:
         print("{0} -> {1}".format(i, arr))
     print()
 
-    #Dosan data...?
+    #Dosan data
     dosanCnt = line[index]
     index += 1
 
@@ -273,52 +281,65 @@ try:
             arr.append(f)
         print("float：{0}".format(arr))
 
-        num = readBinary(line[index:index+2], "short")
         index += 2
-        print("short：{0}".format(num))
     print()
 
+    
     #Map
     print("Read Map Data...")
+    w = open(filename + ".csv", "w")
+    w.write("index,prev_rail,block,")
+    w.write("dir_x,dir_y,dir_z,")
+    w.write("mdl_no,mdl_flg,mdl_kasenchu,per,")
+    w.write("flg,flg,flg,flg,")
+    w.write("rail_data,")
+    w.write("next_rail,next_no,prev_rail,prev_no,\n")
     mapCnt = readBinary(line[index:index+2], "short")
     index += 2
 
     for i in range(mapCnt):
-        rail_no = readBinary(line[index:index+2], "short")
+        prev_rail = readBinary(line[index:index+2], "short")
         index += 2
-        block = line[index]
+        block = readBinary(line[index], "char")
         index += 1
 
-        print("{0} -> [{1},{2}], ".format(i, rail_no, block), end="")
+        w.write("{0},{1},{2},".format(i, prev_rail, block))
 
-        #vector?
+        #vector
         xyz = []
         for j in range(3):
             f = readBinary(line[index:index+4], "float")
             xyz.append(f)
             index += 4
-        print("{0}, ".format(xyz), end="")
+            w.write("{0},".format(f))
 
-        mdl_no = line[index]
+        mdl_no = readBinary(line[index], "char")
         index += 1
+        w.write("{0},".format(mdl_no))
 
-        mdl_no_next = readBinary(line[index:index+2], "short")
-        index += 2
+        mdl_flg = readBinary(line[index], "char")
+        index += 1
+        w.write("{0},".format(mdl_flg))
+
+        mdl_kasenchu = readBinary(line[index], "char")
+        index += 1
+        w.write("{0},".format(mdl_kasenchu))
 
         per = readBinary(line[index:index+4], "float")
         index += 4
-
-        print("[{0},{1}], {2}, ".format(mdl_no, mdl_no_next, per), end="")
+        w.write("{0},".format(per))
         
         #flg
         flg = []
         for j in range(4):
-            flg.append(hex(line[index]))
+            flag = line[index]
+            flg.append(flag)
             index += 1
-        print("{0}, ".format(flg), end="")
+            w.write("0x{:02x},".format(flag))
 
         #rail_data
         rail_data = line[index]
+        w.write("{0},".format(rail_data))
         index += 1
 
         for j in range(rail_data):
@@ -331,9 +352,8 @@ try:
                 index += 2
                 prev_no = readBinary(line[index:index+2], "short")
                 index += 2
-
-                print("[{0},{1},{2},{3}], ".format(next_rail, next_no, prev_rail, prev_no), end="")
-
+                w.write("{0},{1},{2},{3},".format(next_rail, next_no, prev_rail, prev_no))
+                
             next_rail = readBinary(line[index:index+2], "short")
             index += 2
             next_no = readBinary(line[index:index+2], "short")
@@ -342,9 +362,11 @@ try:
             index += 2
             prev_no = readBinary(line[index:index+2], "short")
             index += 2
-            print("[{0},{1},{2},{3}], ".format(next_rail, next_no, prev_rail, prev_no), end="")
+            w.write("{0},{1},{2},{3},".format(next_rail, next_no, prev_rail, prev_no))
+        w.write("\n")
+    w.close()
 
-        print()
+    print(hex(index))
     input()
         
 except Exception as e:
