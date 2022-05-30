@@ -366,9 +366,72 @@ try:
         w.write("\n")
     w.close()
 
-    print(hex(index))
-    input()
-        
+    ##########unknown
+    cnt = readBinary(line[index:index+2], "short")
+    index += 2
+    for i in range(cnt):
+        railNo = readBinary(line[index:index+2], "short")
+        index += 2
+        print(railNo, end=", ")
+        for j in range(9):
+            temp = line[index]
+            index += 1
+            print(temp, end=", ")
+        print()
+
+    index += 2
+    ##########unknown
+
+    ambcnt = readBinary(line[index:index+2], "short")
+    index += 2
+    w = open(filename + "_amb.csv", "w")
+    for i in range(ambcnt):
+        temp = line[index]
+        index += 1
+        w.write("{0},".format(temp))
+        temp = readBinary(line[index:index+4], "float")
+        index += 4
+        w.write("{0},".format(temp))
+        for j in range(2):
+            temp = readBinary(line[index:index+2], "short")
+            index += 2
+            w.write("{0},".format(temp))
+
+        for j in range(6):
+            temp = readBinary(line[index:index+4], "float")
+            index += 4
+            w.write("{0},".format(temp))
+
+        temp = line[index]
+        index += 1
+        w.write("{0},".format(temp))
+        temp = line[index]
+        index += 1
+        w.write("{0},".format(temp))
+
+        temp = readBinary(line[index:index+2], "short")
+        index += 2
+        w.write("{0},".format(temp))
+
+        for j in range(10):
+            temp = readBinary(line[index:index+4], "float")
+            index += 4
+            w.write("{0},".format(temp))
+
+        cnta = line[index]
+        index += 1
+        w.write("{0},".format(cnta))
+        for j in range(cnta):
+            temp = readBinary(line[index:index+2], "short")
+            index += 2
+            w.write("{0},".format(temp))
+
+            for k in range(10):
+                temp = readBinary(line[index:index+4], "float")
+                index += 4
+                w.write("{0},".format(temp))
+        w.write("\n")
+    w.close()
 except Exception as e:
     print(e)
     sys.exit()
