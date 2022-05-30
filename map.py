@@ -27,7 +27,7 @@ def readBinary(line, mode):
 
 print("DEND MAP SCRIPT ver1.0.0...")
 file = input("railのbinファイル名を入力してください: ")
-fildDir = "../raildata/RS"
+fildDir = "."
 readFlag = False
 
 try:
@@ -379,6 +379,7 @@ try:
             print(temp, end=", ")
         print()
 
+    print(hex(index))
     index += 2
     ##########unknown
 
