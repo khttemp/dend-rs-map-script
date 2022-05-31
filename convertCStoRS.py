@@ -28,7 +28,7 @@ def readBinary(line, mode):
 
 print("DEND Convert CS to RS SCRIPT ver1.0.0...")
 file = input("CSのrailのbinファイル名を入力してください: ")
-fildDir = "."
+fildDir = "../raildata/CS"
 readFlag = False
 
 try:
@@ -252,6 +252,7 @@ try:
     endIdx = index
     newLine.extend(line[startIdx:endIdx])
 
+    endcntList = []
     #Map   
     print("Read Map Data...")
 
@@ -322,22 +323,36 @@ try:
 
         endcnt = line[index]
         index += 1
-        for j in range(endcnt):
-            print("{0}".format(i), end=", ")
-            for k in range(8):
-                print("{0}".format(line[index+k]), end=", ")
-            print()
-            index += 0x08
-            
+        if endcnt > 0:
+            eList = []
+            eList.append(i)
+            eList.append(endcnt)
+            for j in range(endcnt):
+                for k in range(8):
+                    eList.append(line[index+k])
+                index += 0x08
+            endcntList.append(eList)
         if readFlag:
             index += 0x1A
 
-    cnt = struct.pack("<h", 0)
+    print("Map End!")
+
+    cnt = struct.pack("<h", len(endcntList))
     for n in cnt:
         newLine.append(n)
 
-    for i in range(0):
-        pass
+    for i in range(len(endcntList)):
+        railNo = endcntList[i][0]
+        no = struct.pack("<h", railNo)
+        for n in no:
+            newLine.append(n)
+
+        endcnt = endcntList[i][1]
+        newLine.append(endcnt)
+
+        for j in range(endcnt):
+            for k in range(8):
+                newLine.append(endcntList[i][8*j + k + 2])
 
     cnt = struct.pack("<h", 0)
     for n in cnt:

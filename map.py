@@ -366,6 +366,8 @@ try:
         w.write("\n")
     w.close()
 
+    print("Map End!")
+    print(hex(index))
     ##########unknown
     cnt = readBinary(line[index:index+2], "short")
     index += 2
@@ -373,16 +375,20 @@ try:
         railNo = readBinary(line[index:index+2], "short")
         index += 2
         print(railNo, end=", ")
-        for j in range(9):
-            temp = line[index]
-            index += 1
-            print(temp, end=", ")
+        endcnt = line[index]
+        index += 1
+        print(endcnt, end=", ")
+        for j in range(endcnt):
+            for k in range(8):
+                temp = line[index]
+                index += 1
+                print(temp, end=", ")
         print()
 
-    print(hex(index))
     index += 2
     ##########unknown
 
+    print("amb data...")
     ambcnt = readBinary(line[index:index+2], "short")
     index += 2
     w = open(filename + "_amb.csv", "w")
@@ -433,8 +439,8 @@ try:
                 w.write("{0},".format(temp))
         w.write("\n")
     w.close()
+
+    print("amb End!")
 except Exception as e:
     print(e)
     sys.exit()
-
-

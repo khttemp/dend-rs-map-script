@@ -27,7 +27,7 @@ def readBinary(line, mode):
 
 print("DEND MAP SCRIPT ver1.0.0...")
 file = input("railのbinファイル名を入力してください: ")
-fildDir = "."
+fildDir = "../raildata/CS"
 readFlag = False
 
 try:
@@ -331,13 +331,14 @@ try:
 
         endcnt = line[index]
         index += 1
-        for j in range(endcnt):
+        if endcnt > 0:
             print("{0}".format(i), end=", ")
-            for k in range(8):
-                print("{0}".format(line[index+k]), end=", ")
+            print("{0}".format(endcnt), end=", ")
+            for j in range(endcnt):
+                for k in range(8):
+                    print("{0}".format(line[index+k]), end=", ")
+                index += 0x08
             print()
-            index += 0x08
-            
         if readFlag:
             index += 0x1A
 
