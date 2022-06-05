@@ -28,8 +28,9 @@ def readBinary(line, mode):
 
 print("DEND Convert CS to RS SCRIPT ver1.0.0...")
 file = input("CSのrailのbinファイル名を入力してください: ")
-fildDir = "../raildata/CS"
+fildDir = "."
 readFlag = False
+reverseFlag = True
 
 try:
     try:
@@ -53,7 +54,10 @@ try:
         raise Exception
 
     newLine = bytearray()
-    rsHeader = b'DEND_MAP_VER0300'
+    if reverseFlag:
+        rsHeader = b'DEND_MAP_VER0400'
+    else:
+        rsHeader = b'DEND_MAP_VER0300'
 
     for n in rsHeader:
         newLine.append(n)
@@ -259,67 +263,95 @@ try:
     mapCnt = readBinary(line[index:index+2], "short")
     newLine.extend(line[index:index+2])
     index += 2
-    
+
+    railInfoList = []
+    reverseInfoList = []
+    railDict = {}
     for i in range(mapCnt):
+        railInfo = []
+        reverseInfo = []
         readFlag = False
         prev_rail = readBinary(line[index:index+2], "short")
-        newLine.extend(line[index:index+2])
+        railInfo.append(line[index:index+2])
         index += 2
         if prev_rail == -1:
             readFlag = True
 
         block = readBinary(line[index], "char")
-        newLine.append(line[index])
+        railInfo.append([line[index]])
         index += 1
 
         #vector
         xyz = []
         for j in range(3):
-            newLine.extend(line[index:index+4])
+            railInfo.append(line[index:index+4])
             index += 4
 
         mdl_no = readBinary(line[index], "char")
-        newLine.append(line[index])
+        railInfo.append([line[index]])
         index += 1
 
         mdl_flg = readBinary(line[index], "char")
-        newLine.append(line[index])
+        railInfo.append([line[index]])
         index += 1
 
         mdl_kasenchu = readBinary(line[index], "char")
-        newLine.append(line[index])
+        railInfo.append([line[index]])
         index += 1
 
         per = readBinary(line[index:index+4], "float")
-        newLine.extend(line[index:index+4])
+        railInfo.append(line[index:index+4])
         index += 4
 
         #flg
         for j in range(4):
-            newLine.append(line[index])
+            railInfo.append([line[index]])
             index += 1
 
         #rail_data
         rail_data = line[index]
-        newLine.append(line[index])
+        railInfo.append([line[index]])
         index += 1
+        railDict[i] = [mdl_no, rail_data]
 
+        tempInfo = []
         for j in range(rail_data):
             next_rail = readBinary(line[index:index+2], "short")
-            newLine.extend(line[index:index+2])
+            railInfo.append(line[index:index+2])
             index += 2
             
             next_no = readBinary(line[index:index+2], "short")
-            newLine.extend(line[index:index+2])
+            railInfo.append(line[index:index+2])
             index += 2
             
             prev_rail = readBinary(line[index:index+2], "short")
-            newLine.extend(line[index:index+2])
+            railInfo.append(line[index:index+2])
             index += 2
             
             prev_no = readBinary(line[index:index+2], "short")
-            newLine.extend(line[index:index+2])
+            railInfo.append(line[index:index+2])
             index += 2
+
+            if reverseFlag:
+                tempInfo.extend([next_rail, next_no, prev_rail, prev_no])
+
+        for j in range(len(tempInfo)):
+            if j % 2 == 0:
+                if j == 0:
+                    temp2 = [tempInfo[j], 7]
+                elif j == 2:
+                    temp2 = [tempInfo[j], 0]
+                elif j == 4:
+                    temp2 = [tempInfo[j], 7]
+                elif j == 6:
+                    temp2 = [tempInfo[j], 0]
+                    
+                temp2.extend(reverseInfo)
+                reverseInfo = temp2
+
+        if len(reverseInfo) > 4:
+            reverseInfo[5] = 100
+            reverseInfo[7] = 107
 
         endcnt = line[index]
         index += 1
@@ -334,6 +366,32 @@ try:
             endcntList.append(eList)
         if readFlag:
             index += 0x1A
+
+        railInfoList.append(railInfo)
+        reverseInfoList.append(reverseInfo)
+
+    if reverseFlag:
+        for i in range(len(railInfoList)):
+            railInfo = railInfoList[i]
+            reverseInfo = reverseInfoList[i]
+            for j in range(len(reverseInfo)):
+                if j % 2 == 0:
+                    railNo = reverseInfo[j]
+                    if railNo == -1:
+                        reverseInfo[j+1] = -1
+                    else:
+                        if railDict[railNo][1] == 1 and reverseInfo[j+1] >= 100:
+                            reverseInfo[j+1] = reverseInfo[j+1] % 100
+                        #if railDict[railNo][0] == 0 and reverseInfo[j+1] % 10 == 7:
+                        #    reverseInfo[j+1] = reverseInfo[j+1] - 7 + 11
+
+            for reverse in reverseInfo:
+                rail = struct.pack("<h", reverse)
+                railInfo.append(rail)
+        
+    for railInfo in railInfoList:
+        for rail in railInfo:
+            newLine.extend(rail)
 
     print("Map End!")
 
