@@ -39,12 +39,12 @@ for line in lines:
     rail_data = int(arr[14])
     railInfo = []
     for i in range(rail_data):
-        for j in range(i*8):
-            railInfo.append(int(arr[15+j]))
+        for j in range(8):
+            railInfo.append(int(arr[15+i*8+j]))
 
     railInfoList.append(railInfo)
 
-f = open("RAIL304.BIN", "rb")
+f = open("RAIL202_CONV.BIN", "rb")
 line = f.read()
 f.close()
 byteArr = bytearray(line)
