@@ -267,6 +267,7 @@ try:
     railInfoList = []
     reverseInfoList = []
     railDict = {}
+    railLenDict = {}
     for i in range(mapCnt):
         railInfo = []
         reverseInfo = []
@@ -312,7 +313,8 @@ try:
         rail_data = line[index]
         railInfo.append([line[index]])
         index += 1
-        railDict[i] = [mdl_no, rail_data]
+        
+        railDict[i] = int(rail_data)
 
         tempInfo = []
         for j in range(rail_data):
@@ -331,6 +333,12 @@ try:
             prev_no = readBinary(line[index:index+2], "short")
             railInfo.append(line[index:index+2])
             index += 2
+
+            if prev_rail not in railLenDict:
+                railLenDict[prev_rail] = prev_no % 100
+            else:
+                if railLenDict[prev_rail] != prev_no % 100:
+                    print("{0} Rail Length error!{1},{2}".format(prev_rail, railLenDict[prev_rail], prev_no % 10))
 
             if reverseFlag:
                 tempInfo.extend([next_rail, next_no, prev_rail, prev_no])
@@ -380,10 +388,12 @@ try:
                     if railNo == -1:
                         reverseInfo[j+1] = -1
                     else:
-                        if railDict[railNo][1] == 1 and reverseInfo[j+1] >= 100:
+                        # 単線レール対応
+                        if railDict[railNo] == 1 and reverseInfo[j+1] >= 100:
                             reverseInfo[j+1] = reverseInfo[j+1] % 100
-                        #if railDict[railNo][0] == 0 and reverseInfo[j+1] % 10 == 7:
-                        #    reverseInfo[j+1] = reverseInfo[j+1] - 7 + 11
+                        # 長さ対応
+                        if railNo in railLenDict and railLenDict[railNo] != 7 and reverseInfo[j+1] % 10 == 7:
+                            reverseInfo[j+1] = reverseInfo[j+1] - 7 + railLenDict[railNo]
 
             for reverse in reverseInfo:
                 rail = struct.pack("<h", reverse)
