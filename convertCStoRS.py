@@ -345,13 +345,9 @@ try:
 
         for j in range(len(tempInfo)):
             if j % 2 == 0:
-                if j == 0:
+                if j % 4 == 0:
                     temp2 = [tempInfo[j], 7]
-                elif j == 2:
-                    temp2 = [tempInfo[j], 0]
-                elif j == 4:
-                    temp2 = [tempInfo[j], 7]
-                elif j == 6:
+                elif j % 4 == 2:
                     temp2 = [tempInfo[j], 0]
                     
                 temp2.extend(reverseInfo)
